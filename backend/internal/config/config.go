@@ -40,7 +40,24 @@ type RateLimiterConfig struct {
 	Window time.Duration `koanf:"window" validate:"required"`
 }
 func LoadConfig() (*Config, error) {
-	logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp()
+	logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Timestamp().Logger()
 	k := koanf.New(".")
-	
+	if err := k.Load(env.Provider("RATE_LIMITER_",".",func(s string) string {
+		return strings.TrimPrefix(s, "RATE_LIMITER_")
+	}), nil); err != nil {
+		logger.Fatal().Err(err).Msg("failed to load configuration")
+	}
+	cfg := &Config{}
+
+	if err := k.Unmarshal("",cfg); err != nil {
+		logger.Fatal().Err(err).Msg("failed to unmarshal configuration")
+	}
+	validate := validator.New()
+
+	if err := validate.Struct(cfg); err != nil {
+		logger.Fatal().Err(err).Msg("config validation failed")
+	}
+
+	return cfg, nil
+
 }
