@@ -19,6 +19,7 @@ func NewRateLimitHandler(service *service.RateLimitService) *RateLimitHandler {
 
 func (h *RateLimitHandler) Check(c echo.Context) error {
 	var req models.RateLimitRequest
+	//extracting details from request
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
@@ -27,6 +28,7 @@ func (h *RateLimitHandler) Check(c echo.Context) error {
 			"error": "user_id is required",
 		})
 	}
+	//now hitting dervice layer here which does the buisness logic
 	allowed, remaining, err := h.service.IsAllowed(c.Request().Context(), req.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
