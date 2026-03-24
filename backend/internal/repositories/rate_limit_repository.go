@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -26,13 +27,14 @@ local data = redis.call("HMGET", key, "tokens", "last_refill")
 local tokens = tonumber(data[1])
 local last_refill = tonumber(data[2])
 
-if tokens == nil then
+-- Proper initialization check
+if data[1] == false or data[2] == false then
     tokens = capacity
     last_refill = now
 end
 
 local delta = math.max(0, now - last_refill)
-local refill = delta * refill_rate
+local refill = math.floor((delta / 1000) * refill_rate)
 
 tokens = math.min(capacity, tokens + refill)
 
@@ -43,6 +45,7 @@ end
 tokens = tokens - 1
 
 redis.call("HMSET", key, "tokens", tokens, "last_refill", now)
+redis.call("EXPIRE", key, 3600)
 
 return {1, tokens}
 `)
@@ -60,7 +63,7 @@ func (r *RateLimitRepository) CheckLimit(
 	refillRate int64,
 ) (bool, int64, error) {
 
-	now := time.Now().Unix()
+	now := time.Now().UnixMilli()
 
 	result, err := r.script.Run(
 		ctx,
@@ -70,7 +73,8 @@ func (r *RateLimitRepository) CheckLimit(
 		refillRate,
 		now,
 	).Result()
-
+	fmt.Println("Running script for key:", key)
+	fmt.Println("Result:", result)
 	if err != nil {
 		return false, 0, err
 	}
