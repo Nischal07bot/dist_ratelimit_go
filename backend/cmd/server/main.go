@@ -1,32 +1,22 @@
 package main
 
 import (
-	"context"
 	"log"
-	"os"
-
 	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
+	"github.com/nischal/rate-limiter/internal/config"
+	"github.com/nischal/rate-limiter/internal/server"
 )
 
 func main() {
 	_ = godotenv.Load()
 
-	redisURL := os.Getenv("REDIS_URL")
-	if redisURL == "" {
-		log.Fatal("REDIS_URL is not set")
-	}
-
-	opts, err := redis.ParseURL(redisURL)
+	cfg,err := config.LoadConfig();
 	if err != nil {
-		log.Fatalf("invalid REDIS_URL: %v", err)
+		log.Fatal(err)
 	}
-
-	rdb := redis.NewClient(opts)
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		log.Fatalf("redis connection failed: %v", err)
+	srv,err := server.NewServer(cfg)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	log.Println("Redis connected successfully")
-	log.Println("Starting Rate Limiter Service")
+	srv.Start(cfg.Server.Port)
 }
