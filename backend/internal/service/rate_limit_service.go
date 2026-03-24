@@ -9,10 +9,10 @@ import (
 
 type RateLimitService struct {
 	repo *repositories.RateLimitRepository
-	cfg  *config.RateLimiterConfig
+	cfg  config.RateLimiterConfig
 }
 
-func NewRateLimitService(repo *repositories.RateLimitRepository, cfg *config.RateLimiterConfig) *RateLimitService {
+func NewRateLimitService(repo *repositories.RateLimitRepository, cfg config.RateLimiterConfig) *RateLimitService {
 	return &RateLimitService{
 		repo: repo,
 		cfg:  cfg,
