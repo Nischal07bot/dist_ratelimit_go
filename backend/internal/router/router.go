@@ -10,4 +10,7 @@ func RegisterRoutes(e *echo.Echo, rateLimitHandler *handler.RateLimitHandler) {
 		return c.String(200, "OK")
 	})
 	e.POST("/rate-limit/check", rateLimitHandler.Check)
+	e.GET("/test", func(c echo.Context) error {
+	return c.String(200, "passed")
+    })
 }
