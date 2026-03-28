@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Redis service
+  redis:
+    image: redis:7-alpine
+    container_name: rate_limiter_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - rate_limiter_network
+
+  # Rate Limiter Application
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rate_limiter_app
+    ports:
+      - "8081:8081"
+    environment:
+      - RATE_LIMITER_PRIMARY__ENV=production
+      - RATE_LIMITER_SERVER__PORT=8081
+      - RATE_LIMITER_SERVER__READ_TIMEOUT=10
+      - RATE_LIMITER_SERVER__WRITE_TIMEOUT=10
+      - RATE_LIMITER_SERVER__IDLE_TIMEOUT=120
+      - RATE_LIMITER_REDIS__ADDRESS=redis:6379
+      - RATE_LIMITER_REDIS__PASSWORD=
+      - RATE_LIMITER_REDIS__DB=0
+      - RATE_LIMITER_REDIS__USE_CLUSTER=false
+      - RATE_LIMITER_RATE_LIMITER__LIMIT=100
+      - RATE_LIMITER_RATE_LIMITER__WINDOW=1m
+      - RATE_LIMITER_RATE_LIMITER__FAIL_OPEN=true
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - rate_limiter_network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+
+networks:
+  rate_limiter_network:
+    driver: bridge
