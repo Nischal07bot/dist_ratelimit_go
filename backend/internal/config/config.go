@@ -17,6 +17,7 @@ type Config struct {
 	Server      ServerConfig      `koanf:"server" validate:"required"`
 	Redis       RedisConfig       `koanf:"redis" validate:"required"`
 	RateLimiter RateLimiterConfig `koanf:"rate_limiter" validate:"required"`
+	
 }
 
 type PrimaryConfig struct {
@@ -39,6 +40,7 @@ type RedisConfig struct {
 type RateLimiterConfig struct {
 	Limit  int           `koanf:"limit" validate:"required"`
 	Window time.Duration `koanf:"window" validate:"required"`
+	FailOpen    bool              `koanf:"fail_open"`
 }
 
 func LoadConfig() (*Config, error) {

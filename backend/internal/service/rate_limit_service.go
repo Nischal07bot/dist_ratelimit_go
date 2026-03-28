@@ -37,7 +37,16 @@ func (s *RateLimitService) IsAllowed(ctx context.Context, identifier string) (bo
 		int64(s.cfg.Limit)/int64(s.cfg.Window.Seconds()), // refill rate
 	)
 	if err != nil {
-		return false, 0, err
+		fmt.Println("RateLimiter ERROR:", err)
+
+	if s.cfg.FailOpen {
+		// allow
+		return true, int64(s.cfg.Limit), nil
+	}
+
+	// fail closed
+	return false, 0, nil
+
 	}
 	return allowed, remaining, nil
 }
