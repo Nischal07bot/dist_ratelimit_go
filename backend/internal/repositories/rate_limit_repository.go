@@ -34,7 +34,7 @@ if data[1] == false or data[2] == false then
 end
 
 local delta = math.max(0, now - last_refill)
-local refill = math.floor((delta / 1000) * refill_rate)
+local refill = (delta / 1000.0) * refill_rate
 
 tokens = math.min(capacity, tokens + refill)
 

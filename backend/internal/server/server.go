@@ -11,7 +11,6 @@ import (
 	"github.com/nischal/rate-limiter/internal/repositories"
 	"github.com/nischal/rate-limiter/internal/router"
 	"github.com/nischal/rate-limiter/internal/service"
-	"github.com/nischal/rate-limiter/internal/middlewares"
 )
 
 type Server struct {
@@ -36,9 +35,9 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	// 4. Handler
 	handler := handler.NewRateLimitHandler(svc)
-	e.Use(middlewares.RateLimitMiddleware(svc))
+	//e.Use(middlewares.RateLimitMiddleware(svc))
 	// 5. Routes
-	router.RegisterRoutes(e, handler)
+	router.RegisterRoutes(e, handler, svc)
 
 	return &Server{
 		echo: e,
@@ -48,5 +47,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 func (s *Server) Start(port string) {
 
 	log.Println("Server running on port", port)
-	s.echo.Start(":" + port)
+	if err := s.echo.Start(":" + port); err != nil {
+		log.Println("Server error:", err)
+	}
 }

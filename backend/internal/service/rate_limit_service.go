@@ -19,17 +19,17 @@ func NewRateLimitService(repo *repositories.RateLimitRepository, cfg config.Rate
 		repo: repo,
 		cfg:  cfg,
 	}
-}//new rate limit service with rate limit script and client set client should be passed on to repo
+} //new rate limit service with rate limit script and client set client should be passed on to repo
 
 func (s *RateLimitService) IsAllowed(ctx context.Context, identifier string) (bool, int64, error) {
-	ctx, cancel:= context.WithTimeout(ctx, 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 	defer func() {
 		if ctx.Err() == context.DeadlineExceeded {
 			fmt.Println("Rate Limiter check timed out for identifier:", identifier)
 		}
 	}()
-	key := fmt.Sprintf("rate_limit:%s", identifier);
+	key := fmt.Sprintf("rate_limit:{%s}", identifier)
 	allowed, remaining, err := s.repo.CheckLimit(
 		ctx,
 		key,
@@ -39,13 +39,13 @@ func (s *RateLimitService) IsAllowed(ctx context.Context, identifier string) (bo
 	if err != nil {
 		fmt.Println("RateLimiter ERROR:", err)
 
-	if s.cfg.FailOpen {
-		// allow
-		return true, int64(s.cfg.Limit), nil
-	}
+		if s.cfg.FailOpen {
+			// allow
+			return true, int64(s.cfg.Limit), nil
+		}
 
-	// fail closed
-	return false, 0, nil
+		// fail closed
+		return false, 0, nil
 
 	}
 	return allowed, remaining, nil
