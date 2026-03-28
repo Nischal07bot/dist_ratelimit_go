@@ -35,6 +35,7 @@ type RedisConfig struct {
 	Address  string `koanf:"address" validate:"required"`
 	Password string `koanf:"password"`
 	DB       int    `koanf:"db"`
+	UseCluster bool   `koanf:"use_cluster"`
 }
 
 type RateLimiterConfig struct {
