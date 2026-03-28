@@ -9,11 +9,11 @@ import (
 )
 
 type RateLimitRepository struct {
-	client *redis.Client
+	client redis.UniversalClient
 	script *redis.Script
 }
 
-func NewRateLimitRepository(client *redis.Client) *RateLimitRepository {
+func NewRateLimitRepository(client redis.UniversalClient) *RateLimitRepository {
 
 	luaScript := redis.NewScript(`
 local key = KEYS[1]
